@@ -36,6 +36,7 @@ verify_runnable "both"
 
 function cleanup
 {
+	mmp_clear_suspended $MMP_POOL
 	datasetexists $MMP_POOL && destroy_pool $MMP_POOL
 	log_must rm $MMP_DIR/file.{0,1,2,3,4,5}
 	log_must rmdir $MMP_DIR

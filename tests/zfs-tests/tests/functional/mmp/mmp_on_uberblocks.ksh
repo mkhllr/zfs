@@ -38,6 +38,7 @@ TARGET=$((($NDISKS * $DURATION * 1000) / $MMP_INTERVAL))
 
 function cleanup
 {
+	mmp_clear_suspended $TESTPOOL
 	datasetexists $TESTPOOL && destroy_pool $TESTPOOL
 	log_must mmp_clear_hostid
 }

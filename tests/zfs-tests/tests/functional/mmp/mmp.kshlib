@@ -171,6 +171,8 @@ function mmp_pool_destroy # pool dir
 		wait $ZHACKPID
 	fi
 
+	mmp_clear_suspended $pool
+
 	if poolexists $pool; then
 		destroy_pool $pool
         fi
