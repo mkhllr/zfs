@@ -446,6 +446,35 @@ mmp_update_uberblock(spa_t *spa, uberblock_t *ub)
 }
 
 /*
+ * Return B_TRUE if ub could be one of this host's own MMP writes of the
+ * uberblock it is rewriting: the same txg, and either a timestamp before
+ * the one in mmp_ub or the same timestamp with a sequence number MMP has
+ * already issued for it.  Each write takes the current second as its
+ * timestamp and the next sequence number within that second, starting
+ * from 1, so those are 1 to mmp_seq - 1.  This cannot rule out another
+ * host's import claim, which copies the best uberblock on disk with a
+ * new sequence number; callers must still check for activity.
+ */
+boolean_t
+mmp_uberblock_could_be_local(spa_t *spa, const uberblock_t *ub)
+{
+	mmp_thread_t *mmp = &spa->spa_mmp;
+	boolean_t local;
+
+	mutex_enter(&mmp->mmp_io_lock);
+	if (ub->ub_txg != mmp->mmp_ub.ub_txg)
+		local = B_FALSE;
+	else if (ub->ub_timestamp != mmp->mmp_ub.ub_timestamp)
+		local = (ub->ub_timestamp < mmp->mmp_ub.ub_timestamp);
+	else
+		local = (MMP_SEQ_VALID(ub) && MMP_SEQ(ub) != 0 &&
+		    MMP_SEQ(ub) < mmp->mmp_seq);
+	mutex_exit(&mmp->mmp_io_lock);
+
+	return (local);
+}
+
+/*
  * Choose a random vdev, label, and MMP block, and write over it
  * with a copy of the last-synced uberblock, whose timestamp
  * has been updated to reflect that the pool is in use.

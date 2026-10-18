@@ -61,6 +61,8 @@ extern void mmp_fini(struct spa *spa);
 extern void mmp_thread_start(struct spa *spa);
 extern void mmp_thread_stop(struct spa *spa);
 extern void mmp_update_uberblock(struct spa *spa, struct uberblock *ub);
+extern boolean_t mmp_uberblock_could_be_local(struct spa *spa,
+    const struct uberblock *ub);
 extern void mmp_signal_all_threads(void);
 extern int mmp_claim_uberblock(spa_t *spa, vdev_t *vd, uberblock_t *ub);
 

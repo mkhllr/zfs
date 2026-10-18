@@ -4597,8 +4597,15 @@ spa_mmp_remote_host_activity(spa_t *spa)
 		return (B_TRUE);
 	}
 
+	/*
+	 * MMP keeps rewriting the last synced uberblock with a newer
+	 * timestamp, so the best one on disk is usually one of our own MMP
+	 * writes and not spa_uberblock itself.  The activity check below
+	 * still looks for another writer.
+	 */
 	if (best_ub.ub_txg != spa->spa_uberblock.ub_txg ||
-	    best_ub.ub_timestamp != spa->spa_uberblock.ub_timestamp) {
+	    (best_ub.ub_timestamp != spa->spa_uberblock.ub_timestamp &&
+	    !mmp_uberblock_could_be_local(spa, &best_ub))) {
 		zfs_dbgmsg("mmp: txg mismatch detected during pool clear, "
 		    "spa=%s txg=%llu ub_txg=%llu timestamp=%llu "
 		    "ub_timestamp=%llu", spa_name(spa),
